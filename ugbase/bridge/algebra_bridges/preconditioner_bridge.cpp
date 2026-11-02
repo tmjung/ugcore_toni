@@ -178,6 +178,23 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "GaussSeidel", tag);
 	}
 
+//	GaussSeidelToni
+	{
+		// TODO(MCGS): Nach der Implementierung nur die tatsaechlich vorhandenen
+		// Methoden fuer Faerbung, Sweep-Richtung und Farbdiagnose registrieren.
+		// set_sor_relax ist bereits ueber GaussSeidelBase verfuegbar, set_damp
+		// ueber das Iterator-Interface. Keine zweite Daempfungssemantik einfuehren.
+		// Registrierung/Template-Code auch fuer die anderen aktivierten Algebra-
+		// Typen pruefen; laplace_toni.lua verwendet speziell CPU mit Blockgroesse 1.
+		typedef GaussSeidelToni<TAlgebra> T;
+		typedef GaussSeidelBase<TAlgebra> TBase;
+		string name = string("GaussSeidelToni").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Toni Preconditioner")
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GaussSeidelToni", tag);
+	}
+
 //	Symmetric GaussSeidel
 	{
 		typedef SymmetricGaussSeidel<TAlgebra> T;

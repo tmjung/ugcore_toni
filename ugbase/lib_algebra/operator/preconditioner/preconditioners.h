@@ -35,6 +35,7 @@
 
 #include "lib_algebra/operator/preconditioner/jacobi.h"
 #include "lib_algebra/operator/preconditioner/gauss_seidel.h"
+#include "lib_algebra/operator/preconditioner/gauss_seidel_toni.h"
 #include "lib_algebra/operator/preconditioner/ilu.h"
 #include "lib_algebra/operator/preconditioner/ilut.h"
 #include "lib_algebra/operator/preconditioner/iterator_product.h"

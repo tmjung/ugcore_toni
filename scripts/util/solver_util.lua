@@ -102,8 +102,8 @@ here someApproxSpace points to a previously created approximation space
 		type = "bicgstab",			-- linear solver type ["bicgstab", "cg", "linear"]
 		precond = 
 		{	
-			type 		= "gmg",	-- preconditioner ["gmg", "ilu", "ilut", "jac", "gs", "sgs"]
-			smoother 	= "gs",	-- gmg-smoother ["ilu", "ilut", "jac", "gs", "sgs"]
+			type 		= "gmg",	-- preconditioner ["gmg", "ilu", "ilut", "jac", "gs", "gs_toni", "sgs"]
+			smoother 	= "gs",	-- gmg-smoother ["ilu", "ilut", "jac", "gs", "gs_toni", "sgs"]
 			cycle		= "V",		-- gmg-cycle ["V", "F", "W"]
 			preSmooth	= 3,		-- number presmoothing steps
 			postSmooth 	= 3,		-- number postsmoothing steps
@@ -505,6 +505,15 @@ util.solver.defaults =
 			overlap 	 	= false
 		},
 
+		gs_toni = {
+			-- TODO(MCGS): Nach der C++-Implementierung Defaults fuer Faerbung,
+			-- Sweep-Richtung, SOR-Relaxation und Diagnose festlegen und unten
+			-- im gs_toni-Zweig an die registrierten Methoden weiterreichen.
+			-- Farbanzahl aus der Matrix bestimmen, nicht als 2 fest vorgeben.
+			consistentInterfaces 	= false,
+			overlap 	 	= false
+		},
+
 		sgs = {
 			consistentInterfaces	= false,
 			overlap		= false
@@ -833,6 +842,16 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		precond = GaussSeidel ()
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
 		precond:enable_overlap(desc.overlap or defaults.overlap)
+	elseif name == "gs_toni" then
+		-- Bereits vorhandener Einstieg fuer den kuenftigen Multi-Color-Glaetter.
+		-- TODO(MCGS): Neue Optionen erst nach C++-Implementierung und Bridge-
+		-- Registrierung auswerten. SOR-Relaxation (set_sor_relax) und aeussere
+		-- Daempfung (set_damp) getrennt konfigurieren. Bei Boolean-Optionen
+		-- nil explizit pruefen: "desc.flag or defaults.flag" kann false nicht
+		-- gegen einen spaeter auf true gesetzten Default durchsetzen.
+		precond = GaussSeidelToni ()
+		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
+		precond:enable_overlap(desc.overlap or defaults.overlap)
 	elseif name == "sgs"  then
 		precond = SymmetricGaussSeidel ()
 		precond:enable_consistent_interfaces(desc.consistentInterfaces or defaults.consistentInterfaces)
@@ -850,6 +869,8 @@ function util.solver.CreatePreconditioner(precondDesc, solverutil)
 		local vertex_vanka = VertexCenteredVankaSubspace(primary, secondary)
 		precond:set_vertex_subspace(vertex_vanka)
 	elseif name == "gmg"  then 
+		-- TODO(MCGS): Der Glaetter wird von GMG fuer die Ebenen geklont und mit
+		-- deren Matrix initialisiert; Farbcaches duerfen nicht global sein.
 		local smoother =
 				util.solver.CreatePreconditioner(
 					desc.smoother or defaults.smoother, solverutil)
